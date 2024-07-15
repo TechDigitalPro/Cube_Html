@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        #container {
+            width: 300px;
+            height: 300px;
+            perspective: 800px;
+        }
+        #cube {
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+        .face {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #ccc;
+            background-size: cover;
+        }
+        .face:nth-child(1) {
+            transform: rotateY(0deg) translateZ(150px);
+            background-image: url('./catfaces/front.jpg'); /* Replace with your image URL */
+        }
+        .face:nth-child(2) {
+            transform: rotateY(90deg) translateZ(150px);
+            background-image: url('./catfaces/right.jpg'); /* Replace with your image URL */
+        }
+        .face:nth-child(3) {
+            transform: rotateY(180deg) translateZ(150px);
+            background-image: url('./catfaces/back.jpg'); /* Replace with your image URL */
+        }
+        .face:nth-child(4) {
+            transform: rotateY(-90deg) translateZ(150px);
+            background-image: url('./catfaces/left.jpg'); /* Replace with your image URL */
+        }
+        .face:nth-child(5) {
+            transform: rotateX(90deg) translateZ(150px);
+            background-image: url('./catfaces/top.jpg'); /* Replace with your image URL */
+        }
+        .face:nth-child(6) {
+            transform: rotateX(-90deg) translateZ(150px);
+            background-image: url('./catfaces/bottom.jpg'); /* Replace with your image URL */
+        }
+    </style>
+</head>
+<body>
+    <div id="info"></div>
+    <div id="container">
+        <div id="cube">
+            <div class="face"></div>
+            <div class="face"></div>
+            <div class="face"></div>
+            <div class="face"></div>
+            <div class="face"></div>
+            <div class="face"></div>
+        </div>
+    </div>
+    <script>
+        let isDragging = false;
+        let startX, startY;
+        let currentX = 0, currentY = 0;
+        let previousX = 0, previousY = 0;
+
+        const cube = document.getElementById('cube');
+
+        cube.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            previousX = currentX;
+            previousY = currentY;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            currentX = previousX - deltaY;
+            currentY = previousY + deltaX;
+            cube.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
+            updateInfo(currentX, currentY);
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+            previousX = currentX;
+            previousY = currentY;
+        });
+
+        function updateInfo(x, y) {
+            info.textContent = `Rotation: ${Math.round(x)}° up/down, ${Math.round(y)}° left/right`;
+        }
+    </script>
+</body>
+</html>

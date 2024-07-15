@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+        
+        #container {
+            width: 300px;
+            height: 300px;
+            perspective: 800px;
+        }
+        
+        #cube {
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+        
+        .face {
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            /* justify-content: center;
+            align-items: center; */
+            border: 1px solid #ccc;
+            background-size: cover;
+        }
+        
+        .face:nth-child(1) {
+            transform: rotateY(0deg) translateZ(150px);
+            background-image: url('catfaces/front.jpg');
+            /* Replace with your image URL */
+        }
+        
+        .face:nth-child(2) {
+            transform: rotateY(90deg) translateZ(150px);
+            background-image: url('catfaces/right.jpg');
+            /* Replace with your image URL */
+        }
+        
+        .face:nth-child(3) {
+            transform: rotateY(180deg) translateZ(150px);
+            background-image: url('catfaces/back.jpg');
+            /* Replace with your image URL */
+        }
+        
+        .face:nth-child(4) {
+            transform: rotateY(-90deg) translateZ(150px);
+            background-image: url('catfaces/left.jpg');
+            /* Replace with your image URL */
+        }
+        
+        .face:nth-child(5) {
+            transform: rotateX(90deg) translateZ(150px);
+            background-image: url('catfaces/top.jpg');
+            /* Replace with your image URL */
+        }
+        
+        .face:nth-child(6) {
+            transform: rotateX(-90deg) translateZ(150px);
+            background-image: url('catfaces/bottom.jpg');
+            /* Replace with your image URL */
+        }
+        
+        .dot {
+            height: 22px;
+            width: 22px;
+            position: absolute;
+            background-color: #ff0000;
+            border-radius: 50%;
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div id="cube">
+            <div id="face-1" class="face">
+                <span id="dot-11" class="dot" style="top: 0; left: 0; cursor: nw-resize;"></span>
+                <span id="dot-12" class="dot" style="top: 0; right: 0; cursor: nesw-resize;"></span>
+                <span id="dot-13" class="dot" style="bottom: 0; left: 0; cursor: ne-resize"></span>
+                <span id="dot-14" class="dot" style="bottom: 0; right: 0; cursor: nw-resize;"></span>
+            </div>
+            <div id="face-2" class="face">
+                <span id="dot-21" class="dot" style="top: 0; left: 0; cursor: nw-resize;"></span>
+                <span id="dot-22" class="dot" style="top: 0; right: 0; cursor: nesw-resize;"></span>
+                <span id="dot-23" class="dot" style="bottom: 0; left: 0; cursor: ne-resize"></span>
+                <span id="dot-24" class="dot" style="bottom: 0; right: 0; cursor: nw-resize;"></span>
+            </div>
+
+            <div id="face-3" class="face">
+                <span id="dot-31" class="dot" style="top: 0; left: 0; cursor: nw-resize;"></span>
+                <span id="dot-32" class="dot" style="top: 0; right: 0; cursor: nesw-resize;"></span>
+                <span id="dot-33" class="dot" style="bottom: 0; left: 0; cursor: ne-resize"></span>
+                <span id="dot-34" class="dot" style="bottom: 0; right: 0; cursor: nw-resize;"></span>
+            </div>
+            <div id="face-4" class="face">
+                <span id="dot-41" class="dot" style="top: 0; left: 0; cursor: nw-resize;"></span>
+                <span id="dot-42" class="dot" style="top: 0; right: 0; cursor: nesw-resize;"></span>
+                <span id="dot-43" class="dot" style="bottom: 0; left: 0; cursor: ne-resize"></span>
+                <span id="dot-44" class="dot" style="bottom: 0; right: 0; cursor: nw-resize;"></span>
+            </div>
+            <div id="face-5" class="face">
+                <span id="dot-51" class="dot" style="top: 0; left: 0; cursor: nw-resize;"></span>
+                <span id="dot-52" class="dot" style="top: 0; right: 0; cursor: nesw-resize;"></span>
+                <span id="dot-53" class="dot" style="bottom: 0; left: 0; cursor: ne-resize"></span>
+                <span id="dot-54" class="dot" style="bottom: 0; right: 0; cursor: nw-resize;"></span>
+            </div>
+            <div id="face-6" class="face">
+                <span id="dot-61" class="dot" style="top: 0; left: 0; cursor: nw-resize;"></span>
+                <span id="dot-62" class="dot" style="top: 0; right: 0; cursor: nesw-resize;"></span>
+                <span id="dot-63" class="dot" style="bottom: 0; left: 0; cursor: ne-resize"></span>
+                <span id="dot-64" class="dot" style="bottom: 0; right: 0; cursor: nw-resize;"></span>
+            </div>
+        </div>
+    </div>
+    <script>
+        let isDragging = false;
+        let isResizable = false;
+        let face_id = "";
+        let startX = 0,
+            startY = 0;
+        let currentX = 0,
+            currentY = 0;
+        let previousX = 0,
+            previousY = 0;
+
+        let oldX = 0,
+            oldY = 0;
+
+        let translateZ = Array(6).fill(150);
+
+        const cube = document.getElementById('cube');
+        const face_1 = document.getElementById("face-1");
+        const face_2 = document.getElementById("face-2");
+        const face_3 = document.getElementById("face-3");
+        const face_4 = document.getElementById("face-4");
+        const face_5 = document.getElementById("face-5");
+        const face_6 = document.getElementById("face-6");
+
+        const dot_11 = document.getElementById("dot-11");
+        const dot_12 = document.getElementById("dot-12");
+        const dot_13 = document.getElementById("dot-13");
+        const dot_14 = document.getElementById("dot-14");
+
+        const dot_21 = document.getElementById("dot-21");
+        const dot_22 = document.getElementById("dot-22");
+        const dot_23 = document.getElementById("dot-23");
+        const dot_24 = document.getElementById("dot-24");
+
+        const dot_31 = document.getElementById("dot-31");
+        const dot_32 = document.getElementById("dot-32");
+        const dot_33 = document.getElementById("dot-33");
+        const dot_34 = document.getElementById("dot-34");
+
+        const dot_41 = document.getElementById("dot-41");
+        const dot_42 = document.getElementById("dot-42");
+        const dot_43 = document.getElementById("dot-43");
+        const dot_44 = document.getElementById("dot-44");
+
+        const dot_51 = document.getElementById("dot-51");
+        const dot_52 = document.getElementById("dot-52");
+        const dot_53 = document.getElementById("dot-53");
+        const dot_54 = document.getElementById("dot-54");
+
+        const dot_61 = document.getElementById("dot-61");
+        const dot_62 = document.getElementById("dot-12");
+        const dot_63 = document.getElementById("dot-13");
+        const dot_64 = document.getElementById("dot-14");
+
+        addResizeEvent(dot_11, "face-1");
+        addResizeEvent(dot_12, "face-1");
+        addResizeEvent(dot_13, "face-1");
+        addResizeEvent(dot_14, "face-1");
+
+        addResizeEvent(dot_21, "face-2");
+        addResizeEvent(dot_22, "face-2");
+        addResizeEvent(dot_23, "face-2");
+        addResizeEvent(dot_24, "face-2");
+
+        addResizeEvent(dot_31, "face-3");
+        addResizeEvent(dot_32, "face-3");
+        addResizeEvent(dot_33, "face-3");
+        addResizeEvent(dot_34, "face-3");
+
+        addResizeEvent(dot_41, "face-4");
+        addResizeEvent(dot_42, "face-4");
+        addResizeEvent(dot_43, "face-4");
+        addResizeEvent(dot_44, "face-4");
+
+        addResizeEvent(dot_51, "face-5");
+        addResizeEvent(dot_52, "face-5");
+        addResizeEvent(dot_53, "face-5");
+        addResizeEvent(dot_54, "face-5");
+
+        addResizeEvent(dot_61, "face-6");
+        addResizeEvent(dot_62, "face-6");
+        addResizeEvent(dot_63, "face-6");
+        addResizeEvent(dot_64, "face-6");
+
+        window.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            previousX = currentX;
+            previousY = currentY;
+            oldX = e.clientX;
+            oldY = e.clientY;
+        }, false);
+
+        window.addEventListener('mousemove', (e) => {
+            e.preventDefault();
+            if (!isDragging) return;
+            if (!isResizable) {
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                currentX = previousX - deltaY;
+                currentY = previousY + deltaX;
+                cube.style.transform = `rotateX(${currentX}deg) rotateY(${currentY}deg)`;
+            } else {
+                let offsetX = e.clientX - oldX;
+                let offsetY = e.clientY - oldY;
+                resizeCube(offsetX, offsetY);
+                oldX = e.clientX;
+                oldY = e.clientY;
+            }
+        }, false);
+
+        window.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            if (!isResizable) {
+                previousX = currentX;
+                previousY = currentY;
+            }
+            isDragging = false;
+            isResizable = false;
+        }, false);
+
+        function addResizeEvent(ele, parent_id) {
+            ele.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                isResizable = true;
+                face_id = parent_id;
+            }, false);
+        }
+
+        function resizeCube(offsetX, offsetY) {
+            let bufX = offsetX,
+                bufY = offsetY;
+            if (face_id == "face-1") {
+                updateSize(face_1, bufX, bufY);
+                updateSize(face_2, 0, bufY);
+                updateSize(face_3, bufX, bufY);
+                updateSize(face_4, 0, bufY);
+                updateSize(face_5, bufX, 0);
+                updateSize(face_6, bufX, 0);
+
+                updateTransZ(face_2, bufX);
+                updateTransZ(face_6, bufY);
+            } else if (face_id == "face-2") {
+                updateSize(face_1, 0, bufY);
+                updateSize(face_2, bufX, bufY);
+                updateSize(face_3, 0, bufY);
+                updateSize(face_4, bufX, bufY);
+                updateSize(face_5, 0, bufX);
+                updateSize(face_6, 0, bufX);
+
+                let left = parseInt(window.getComputedStyle(face_2).left);
+                //translateZ[1] = 150 - ((parseInt(window.getComputedStyle(face_2).width) - 300) / 2);
+                //face_2.style.transform = `rotateY(90deg) translateZ(${translateZ[1]}px)`;
+                //face_2.style.left = (left - ((parseInt(window.getComputedStyle(face_2).width) - 300) / 2)) + "px";
+                console.log(face_2.style.left)
+                updateTransZ(face_3, bufX);
+                updateTransZ(face_6, bufY);
+
+            }
+        }
+
+        function updateSize(face, offsetX, offsetY) {
+            face.style.width = (parseInt(window.getComputedStyle(face).width) + offsetX) + "px";
+            face.style.height = (parseInt(window.getComputedStyle(face).height) + offsetY) + "px";
+        }
+
+        function updateTransZ(face, offsetZ) {
+            if (face == face_1) {
+                translateZ[0] += offsetZ;
+                face.style.transform = `rotateY(0deg) translateZ(${translateZ[0]}px)`;
+            } else if (face == face_2) {
+                translateZ[1] += offsetZ;
+                face.style.transform = `rotateY(90deg) translateZ(${translateZ[1]}px)`;
+            } else if (face == face_3) {
+                translateZ[2] += offsetZ;
+                face.style.transform = `rotateY(180deg) translateZ(${translateZ[2]}px)`;
+            } else if (face == face_4) {
+                translateZ[3] += offsetZ;
+                face.style.transform = `rotateY(-90deg) translateZ(${translateZ[3]}px)`;
+            } else if (face == face_5) {
+                translateZ[4] += offsetZ;
+                face.style.transform = `rotateX(90deg) translateZ(${translateZ[4]}px)`;
+            } else if (face == face_6) {
+                translateZ[5] += offsetZ;
+                face.style.transform = `rotateX(-90deg) translateZ(${translateZ[5]}px)`;
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #000000;
+        }
+        
+        #container {
+            width: 300px;
+            height: 300px;
+            perspective: 800px;
+            position: absolute;
+        }
+        
+        #cube {
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+        
+        .face {
+            position: absolute;
+            /* display: flex; */
+            /* justify-content: center;
+            align-items: center; */
+            border: 3px solid transparent;
+            background-size: cover;
+            overflow: hidden;
+            background-color: #000000;
+            cursor: pointer;
+        }
+        
+        .face:nth-child(1) {
+            transform: rotateY(0deg);
+            /* background-image: url('catfaces/front.jpg'); */
+            /* background-size: contain; */
+            /* background-repeat: no-repeat; */
+            /* background-position: center center; */
+            /* Replace with your image URL */
+        }
+        
+        .face:nth-child(2) {
+            transform: rotateY(90deg);
+            /* background-image: url('catfaces/right.jpg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center center; */
+            /* Replace with your image URL */
+        }
+        
+        .face:nth-child(3) {
+            transform: rotateY(180deg);
+            /* background-image: url('catfaces/back.jpg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center center; */
+            /* Replace with your image URL */
+        }
+        
+        .face:nth-child(4) {
+            transform: rotateY(-90deg);
+            /* background-image: url('catfaces/left.jpg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center center; */
+            /* Replace with your image URL */
+        }
+        
+        .face:nth-child(5) {
+            transform: rotateX(90deg);
+            /* background-image: url('catfaces/top.jpg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center center; */
+            /* Replace with your image URL */
+        }
+        
+        .face:nth-child(6) {
+            transform: rotateX(-90deg);
+            /* background-image: url('catfaces/bottom.jpg');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center center; */
+            /* Replace with your image URL */
+        }
+        
+        .dot {
+            height: 20px;
+            width: 20px;
+            position: absolute;
+            background-color: #ff0000;
+            border-radius: 50%;
+            margin: 0;
+            z-index: 2;
+        }
+        
+        .face-image {}
+    </style>
+</head>
+
+<body onload="initialize();">
+    <div id="container">
+        <div id="cube">
+            <div id="face-1" class="face" onclick="selectFace(this);">
+                <img id="img-1" class="face-image " src="catfaces/front_1.png " />
+            </div>
+            <div id="face-2" class="face " style="cursor: pointer; " onclick="selectFace(this);">
+                <img id="img-2" class="face-image " src="catfaces/right_1.png " />
+            </div>
+            <div id="face-3" class="face " onclick="selectFace(this);">
+                <img id="img-3" class="face-image " style="transform: scaleX(-1);" src="catfaces/front_5.png " />
+            </div>
+            <div id="face-4" class="face " onclick="selectFace(this);">
+                <img id="img-4" class="face-image " style="transform: scaleX(-1);" src="catfaces/right_5.png " />
+            </div>
+            <div id="face-5" class="face " onclick="selectFace(this);">
+                <img id="img-5" class="face-image " src="catfaces/top_1.png " />
+            </div>
+            <div id="face-6" class="face " onclick="selectFace(this);">
+                <img id="img-6" class="face-image " style="transform: scaleY(-1);" src="catfaces/top_5.png " />
+            </div>
+        </div>
+    </div>
+    <!-- <div id="cube-controller " style="width: 800px; height: 800px; position: absolute; ">
+        <span id="dot-1 " class="dot " style="top: 0px; left: 0px; cursor: nw-resize; "></span>
+        <span id="dot-2 " class="dot " style="top: 0px; right: 0px; cursor: nesw-resize; "></span>
+        <span id="dot-3 " class="dot " style="bottom: 0px; left: 0px; cursor: ne-resize; "></span>
+        <span id="dot-4 " class="dot " style="bottom: 0px; right: 0px; cursor: nw-resize; "></span>
+    </div> -->
+    <img id="rotate-option" src="catfaces/rotate-highlight.png" style="width: 35px; height: auto; margin: 15px; cursor: pointer;" onclick="rotateClick(); ">
+    <img id="resize-option" src="catfaces/resize.png" style="width: 35px; height: auto; margin: 15px; margin-left: auto; cursor: pointer;" onclick="resizeClick(); ">
+    <script>
+        let W1 = 0;
+        let W2 = 0;
+        let H1 = 0;
+        let isMouseControl = false;
+        let isDragging = true;
+        let isResizable = false;
+        let resizeDirection = 1;
+        let face_id = "";
+        let startX = 0,
+            startY = 0;
+        let currentX = 0,
+            currentY = 0;
+        let previousX = 0,
+            previousY = 0;
+
+        let oldX = 0,
+            oldY = 0;
+
+        let translateX = Array(6).fill(0);
+        let translateY = Array(6).fill(0);
+        let translateZ = Array(6).fill(0);
+
+        let W = Array(6).fill(0);
+        let H = Array(6).fill(0);
+        let face_offset = Array(6).fill(0);
+
+        const cube = document.getElementById('cube');
+        const face_1 = document.getElementById("face-1");
+        const face_2 = document.getElementById("face-2");
+        const face_3 = document.getElementById("face-3");
+        const face_4 = document.getElementById("face-4");
+        const face_5 = document.getElementById("face-5");
+        const face_6 = document.getElementById("face-6");
+
+        const image_1 = document.getElementById("img-1");
+        const image_2 = document.getElementById("img-2");
+        const image_3 = document.getElementById("img-3");
+        const image_4 = document.getElementById("img-4");
+        const image_5 = document.getElementById("img-5");
+        const image_6 = document.getElementById("img-6");
+
+        const cube_controller = document.getElementById("cube-controller ");
+        // const dot_1 = document.getElementById("dot-1 ");
+        // const dot_2 = document.getElementById("dot-2 ");
+        // const dot_3 = document.getElementById("dot-3 ");
+        // const dot_4 = document.getElementById("dot-4 ");
+
+        let front_image_num = 5;
+        let right_image_num = 5;
+        let top_image_num = 5;
+        let space = 75;
+
+        let front_up = 0;
+        let front_back = 0;
+        let right_up = 0;
+        let right_back = 0;
+        let top_up = 0;
+        let top_back = 0;
+
+        function setSize() {
+            W[2] = W[0];
+            W[3] = W[1];
+            W[4] = W[0];
+            W[5] = W[0];
+
+            H[1] = H[0];
+            H[2] = H[0];
+            H[3] = H[0];
+            H[4] = W[1];
+            H[5] = W[1];
+
+            face_1.style.width = W[0] + "px ";
+            face_2.style.width = W[1] + "px ";
+            face_3.style.width = W[2] + "px ";
+            face_4.style.width = W[3] + "px ";
+            face_5.style.width = W[4] + "px ";
+            face_6.style.width = W[5] + "px ";
+
+            face_1.style.height = H[0] + "px ";
+            face_2.style.height = H[1] + "px ";
+            face_3.style.height = H[2] + "px ";
+            face_4.style.height = H[3] + "px ";
+            face_5.style.height = H[4] + "px ";
+            face_6.style.height = H[5] + "px ";
+
+            calculateTranslate();
+            applyTranslate();
+        }
+
+        function setImageSize() {
+            image_1.style.width = W[0] + "px ";
+            image_2.style.width = W[1] + "px ";
+            image_3.style.width = W[2] + "px ";
+            image_4.style.width = W[3] + "px ";
+            image_5.style.width = W[4] + "px ";
+            image_6.style.width = W[5] + "px ";
+
+            image_1.style.height = H[0] + "px ";
+            image_2.style.height = H[1] + "px ";
+            image_3.style.height = H[2] + "px ";
+            image_4.style.height = H[3] + "px ";
+            image_5.style.height = H[4] + "px ";
+            image_6.style.height = H[5] + "px ";
+        }
+
+        function calculateTranslate() {
+            translateX[1] = W[1] / 2 - translateZ[0];
+            translateY[1] = translateY[0];
+            translateZ[1] = W[0] - W[1] / 2 + translateX[0];
+
+            translateX[2] = -1 * translateX[0];
+            translateY[2] = translateY[0];
+            translateZ[2] = W[1] - translateZ[0];
+
+            translateX[3] = translateZ[0] - W[3] / 2;
+            translateY[3] = translateY[0];
+            translateZ[3] = W[3] / 2 - translateX[0];
+
+            translateX[4] = translateX[0];
+            translateY[4] = translateZ[0] - H[4] / 2;
+            translateZ[4] = H[4] / 2 - translateY[0];
+
+            translateX[5] = translateX[0];
+            translateY[5] = H[5] / 2 - translateZ[0];
+            translateZ[5] = H[0] - H[5] / 2 + translateY[0];
+        }
+
+        function applyTranslate() {
+            face_1.style.transform = `rotateY(0deg) translateX(${translateX[0]}px) translateY(${translateY[0]}px) translateZ(${translateZ[0]}px)`;
+            face_2.style.transform = `rotateY(90deg) translateX(${translateX[1]}px) translateY(${translateY[1]}px) translateZ(${translateZ[1]}px)`;
+            face_3.style.transform = `rotateY(180deg) translateX(${translateX[2]}px) translateY(${translateY[2]}px) translateZ(${translateZ[2]}px)`;
+            face_4.style.transform = `rotateY(-90deg) translateX(${translateX[3]}px) translateY(${translateY[3]}px) translateZ(${translateZ[3]}px)`;
+            face_5.style.transform = `rotateX(90deg) translateX(${translateX[4]}px) translateY(${translateY[4]}px) translateZ(${translateZ[4]}px)`;
+            face_6.style.transform = `rotateX(-90deg) translateX(${translateX[5]}px) translateY(${translateY[5]}px) translateZ(${translateZ[5]}px)`;
+        }
+
+        function addResizeControl() {
+            // addResizeEvent(dot_1, 1);
+            // addResizeEvent(dot_2, 2);
+            // addResizeEvent(dot_3, 3);
+            // addResizeEvent(dot_4, 4);
+        }
+
+        function initialize() {
+            W1 = space * (right_image_num - 1);
+            H1 = space * (top_image_num - 1);
+            W2 = space * (front_image_num - 1);
+            //set init size and transform
+            W[0] = W1;
+            W[1] = W2;
+            H[0] = H1;
+
+            translateX[0] = 0;
+            translateY[0] = 0;
+            translateZ[0] = 150;
+
+            setSize();
+            setImageSize();
+            addResizeControl();
+        }
+
+        window.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            startX = e.clientX;
+            startY = e.clientY;
+            previousX = currentX;
+            previousY = currentY;
+            oldX = e.clientX;
+            oldY = e.clientY;
+            isMouseControl = true;
+        }, false);
+
+        window.addEventListener('mousemove', (e) => {
+            e.preventDefault();
+            if (!isMouseControl) return;
+            if (isDragging) {
+                const deltaX = e.clientX - startX;
+                const deltaY = e.clientY - startY;
+                currentX = previousX - deltaY;
+                currentY = previousY + deltaX;
+
+                let deg_x = currentX % 360;
+                let deg_y = currentY % 360;
+                cube.style.transform = `rotateX(${deg_x}deg) rotateY(${deg_y}deg)`;
+                //cube_controller.style.transform = 'rotate(' + deg_y + 'deg)';
+                let is_reverse = false;
+                if ((deg_x > 135 && deg_x < 225) || (deg_x > -225 && deg_x < -135)) {
+                    is_reverse = true;
+                }
+
+                if ((deg_y >= 0 && deg_y <= 45) || (deg_y >= -45 && deg_y <= 0)) {
+                    if (is_reverse) {
+                        face_id = "face-3";
+                    } else {
+                        face_id = "face-1";
+                    }
+                } else if ((deg_y >= 225 && deg_y <= 270) || (deg_y >= -135 && deg_y <= -45)) {
+                    if (is_reverse) {
+                        face_id = "face-4";
+                    } else {
+                        face_id = "face-2";
+                    }
+                } else if ((deg_y >= 135 && deg_y <= 225) || (deg_y >= -225 && deg_y <= -135)) {
+                    if (is_reverse) {
+                        face_id = "face-1";
+                    } else {
+                        face_id = "face-3";
+                    }
+                } else if ((deg_y >= 45 && deg_y <= 135) || (deg_y >= -315 && deg_y <= -225)) {
+                    if (is_reverse) {
+                        face_id = "face-2";
+                    } else {
+                        face_id = "face-4";
+                    }
+                } else if ((deg_y >= 225 && deg_y <= 359) || (deg_y >= -359 && deg_y <= -270)) {
+                    if (is_reverse) {
+                        face_id = "face-3";
+                    } else {
+                        face_id = "face-1";
+                    }
+                }
+                if ((deg_x >= 225 && deg_x <= 315) || (deg_x >= -135 && deg_x <= -45)) {
+                    face_id = "face-5";
+                } else if ((deg_x >= 45 && deg_x <= 135) || (deg_x >= -315 && deg_x <= -225)) {
+                    face_id = "face-6";
+                }
+                highlightFaceBorder();
+                // if (face_id == "face-6 ") {
+                //     cube_controller.style.transform = 'rotate(' + deg_y + 'deg)';
+                // } else if (face_id == "face-5 ") {
+                //     cube_controller.style.transform = 'rotate(' + ((-1) * deg_y) + 'deg)';
+                // } else {
+                //     cube_controller.style.transform = 'rotate(0deg)';
+                // }
+                //console.log(face_id)
+            } else if (isResizable) {
+                let offsetX = e.clientX - oldX;
+                let offsetY = e.clientY - oldY;
+                //resizeCube(offsetX, offsetY);
+                let offset = Math.sqrt(Math.pow(offsetX, 2) + Math.pow(offsetY, 2));
+                let direction_x = "";
+                let direction_y = "";
+                if (e.clientX < oldX) {
+                    direction_x = "left"
+                } else if (e.clientX > oldX) {
+                    direction_x = "right"
+                }
+                if (e.clientY < oldY) {
+                    direction_y = "top"
+                } else if (e.clientY > oldY) {
+                    direction_y = "bottom"
+                }
+                if (direction_x === "left") {
+                    offset = -1 * offset;
+                }
+                if (direction_x === "" && direction_y === "top") {
+                    offset = -1 * offset;
+                }
+                changeSizeCube(offset);
+                oldX = e.clientX;
+                oldY = e.clientY;
+            }
+        }, false);
+
+        window.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            isMouseControl = false;
+            if (isDragging) {
+                previousX = currentX;
+                previousY = currentY;
+            }
+            resizeDirection = 1;
+        }, false);
+
+        function addResizeEvent(ele, direction) {
+            ele.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                isResizable = true;
+                resizeDirection = direction;
+            }, false);
+        }
+
+        function getImageMarginLeft(image) {
+            return parseInt(window.getComputedStyle(image).marginLeft);
+        }
+
+        function setImageMarginLeft(image, value) {
+            image.style.marginLeft = value + "px ";
+        }
+
+        function getImageMarginTop(image) {
+            return parseInt(window.getComputedStyle(image).marginTop);
+        }
+
+        function setImageMarginTop(image, value) {
+            image.style.marginTop = value + "px ";
+        }
+
+        function resizeCube(offsetX, offsetY) {
+            if (face_id == "face-1") {
+                if (resizeDirection == 1) {
+                    if (W[0] - offsetX > 0 && W[0] - offsetX < W1) {
+                        W[0] -= offsetX;
+                        translateX[0] = translateX[0] + offsetX;
+                        setImageMarginLeft(image_1, getImageMarginLeft(image_1) - offsetX);
+                        setImageMarginLeft(image_5, getImageMarginLeft(image_5) - offsetX);
+                        setImageMarginLeft(image_6, getImageMarginLeft(image_6) - offsetX);
+                        right_up += offsetX;
+                    }
+                    if (H[0] - offsetY > 0 && H[0] - offsetY < H1) {
+                        H[0] -= offsetY;
+                        translateY[0] = translateY[0] + offsetY;
+                        setImageMarginTop(image_1, getImageMarginTop(image_1) - offsetY);
+                        setImageMarginTop(image_2, getImageMarginTop(image_2) - offsetY);
+                        setImageMarginTop(image_3, getImageMarginTop(image_3) - offsetY);
+                        setImageMarginTop(image_4, getImageMarginTop(image_4) - offsetY);
+                        top_up += offsetY;
+                    }
+                } else if (resizeDirection == 2) {
+                    if (W[0] + offsetX > 0 && W[0] + offsetX < W1) {
+                        W[0] += offsetX;
+                        setImageMarginLeft(image_3, getImageMarginLeft(image_3) + offsetX);
+                        right_back -= offsetX;
+                    }
+                    if (H[0] - offsetY > 0 && H[0] - offsetY < H1) {
+                        H[0] -= offsetY;
+                        translateY[0] = translateY[0] + offsetY;
+                        setImageMarginTop(image_1, getImageMarginTop(image_1) - offsetY);
+                        setImageMarginTop(image_2, getImageMarginTop(image_2) - offsetY);
+                        setImageMarginTop(image_3, getImageMarginTop(image_3) - offsetY);
+                        setImageMarginTop(image_4, getImageMarginTop(image_4) - offsetY);
+                        top_up += offsetY;
+                    }
+                } else if (resizeDirection == 3) {
+                    if (W[0] - offsetX > 0 && W[0] - offsetX < W1) {
+                        W[0] -= offsetX;
+                        translateX[0] = translateX[0] + offsetX;
+                        setImageMarginLeft(image_1, getImageMarginLeft(image_1) - offsetX);
+                        setImageMarginLeft(image_5, getImageMarginLeft(image_5) - offsetX);
+                        setImageMarginLeft(image_6, getImageMarginLeft(image_6) - offsetX);
+                        right_up += offsetX;
+                    }
+                    if (H[0] + offsetY > 0 && H[0] + offsetY < H1) {
+                        H[0] += offsetY;
+                        top_back += offsetY;
+                    }
+                } else if (resizeDirection == 4) {
+                    if (W[0] + offsetX > 0 && W[0] + offsetX < W1) {
+                        W[0] += offsetX;
+                        setImageMarginLeft(image_3, getImageMarginLeft(image_3) + offsetX);
+                        right_back -= offsetX;
+                    }
+                    if (H[0] + offsetY > 0 && H[0] + offsetY < H1) {
+                        H[0] += offsetY;
+                        top_back += offsetY;
+                    }
+                }
+            } else if (face_id == "face-2") {
+                if (resizeDirection == 1) {
+                    if (W[1] - offsetX > 0 && W[1] - offsetX < W2) {
+                        W[1] -= offsetX;
+                        translateZ[0] = translateZ[0] - offsetX;
+                        setImageMarginLeft(image_2, getImageMarginLeft(image_2) - offsetX);
+                        setImageMarginTop(image_6, getImageMarginTop(image_6) - offsetX);
+                        front_up += offsetX;
+                    }
+                    if (H[0] - offsetY > 0 && H[0] - offsetY < H1) {
+                        H[0] -= offsetY;
+                        translateY[0] = translateY[0] + offsetY;
+                        setImageMarginTop(image_1, getImageMarginTop(image_1) - offsetY);
+                        setImageMarginTop(image_2, getImageMarginTop(image_2) - offsetY);
+                        setImageMarginTop(image_3, getImageMarginTop(image_3) - offsetY);
+                        setImageMarginTop(image_4, getImageMarginTop(image_4) - offsetY);
+                        top_up += offsetY;
+                    }
+                } else if (resizeDirection == 2) {
+                    if (W[1] + offsetX > 0 && W[1] + offsetX < W2) {
+                        W[1] += offsetX;
+                        setImageMarginLeft(image_4, getImageMarginLeft(image_4) + offsetX);
+                        setImageMarginTop(image_5, getImageMarginTop(image_5) + offsetX);
+                        front_back -= offsetX;
+                    }
+                    if (H[0] - offsetY > 0 && H[0] - offsetY < H1) {
+                        H[0] -= offsetY;
+                        translateY[0] = translateY[0] + offsetY;
+                        setImageMarginTop(image_1, getImageMarginTop(image_1) - offsetY);
+                        setImageMarginTop(image_2, getImageMarginTop(image_2) - offsetY);
+                        setImageMarginTop(image_3, getImageMarginTop(image_3) - offsetY);
+                        setImageMarginTop(image_4, getImageMarginTop(image_4) - offsetY);
+                        top_up += offsetY;
+                    }
+                } else if (resizeDirection == 3) {
+                    if (W[1] - offsetX > 0 && W[1] - offsetX < W2) {
+                        W[1] -= offsetX;
+                        translateZ[0] = translateZ[0] - offsetX;
+                        setImageMarginLeft(image_2, getImageMarginLeft(image_2) - offsetX);
+                        setImageMarginTop(image_6, getImageMarginTop(image_6) - offsetX);
+                        front_up += offsetX;
+                    }
+                    if (H[0] + offsetY > 0 && H[0] + offsetY < H1) {
+                        H[0] += offsetY;
+                        top_back += offsetY;
+                    }
+                } else if (resizeDirection == 4) {
+                    if (W[1] + offsetX > 0 && W[1] + offsetX < W2) {
+                        W[1] += offsetX;
+                        setImageMarginLeft(image_4, getImageMarginLeft(image_4) + offsetX);
+                        setImageMarginTop(image_5, getImageMarginTop(image_5) + offsetX);
+                        front_back -= offsetX;
+                    }
+                    if (H[0] + offsetY > 0 && H[0] + offsetY < H1) {
+                        H[0] += offsetY;
+                        top_back += offsetY;
+                    }
+                }
+            } else if (face_id == "face-3") {
+                if (resizeDirection == 1) {
+                    if (W[0] - offsetX > 0 && W[0] - offsetX < W1) {
+                        W[0] -= offsetX;
+                        setImageMarginLeft(image_3, getImageMarginLeft(image_3) - offsetX);
+                    }
+                    if (H[0] - offsetY > 0 && H[0] - offsetY < H1) {
+                        H[0] -= offsetY;
+                        translateY[0] = translateY[0] + offsetY;
+                        setImageMarginTop(image_1, getImageMarginTop(image_1) - offsetY);
+                        setImageMarginTop(image_2, getImageMarginTop(image_2) - offsetY);
+                        setImageMarginTop(image_3, getImageMarginTop(image_3) - offsetY);
+                        setImageMarginTop(image_4, getImageMarginTop(image_4) - offsetY);
+                    }
+                } else if (resizeDirection == 2) {
+                    if (W[0] + offsetX > 0 && W[0] + offsetX < W1) {
+                        W[0] += offsetX;
+                        translateX[0] = translateX[0] - offsetX;
+                        setImageMarginLeft(image_1, getImageMarginLeft(image_1) + offsetX);
+                        setImageMarginLeft(image_5, getImageMarginLeft(image_5) + offsetX);
+                        setImageMarginLeft(image_6, getImageMarginLeft(image_6) + offsetX);
+                    }
+                    if (H[0] - offsetY > 0 && H[0] - offsetY < H1) {
+                        H[0] -= offsetY;
+                        translateY[0] = translateY[0] + offsetY;
+                        setImageMarginTop(image_1, getImageMarginTop(image_1) - offsetY);
+                        setImageMarginTop(image_2, getImageMarginTop(image_2) - offsetY);
+                        setImageMarginTop(image_3, getImageMarginTop(image_3) - offsetY);
+                        setImageMarginTop(image_4, getImageMarginTop(image_4) - offsetY);
+                    }
+                } else if (resizeDirection == 3) {
+                    if (W[0] - offsetX > 0 && W[0] - offsetX < W1) {
+                        W[0] -= offsetX;
+                        setImageMarginLeft(image_3, getImageMarginLeft(image_3) - offsetX);
+                    }
+                    if (H[0] + offsetY > 0 && H[0] + offsetY < H1) {
+                        H[0] += offsetY;
+                    }
+                } else if (resizeDirection == 4) {
+                    if (W[0] + offsetX > 0 && W[0] + offsetX < W1) {
+                        W[0] += offsetX;
+                        translateX[0] = translateX[0] - offsetX;
+                        setImageMarginLeft(image_1, getImageMarginLeft(image_1) + offsetX);
+                        setImageMarginLeft(image_5, getImageMarginLeft(image_5) + offsetX);
+                        setImageMarginLeft(image_6, getImageMarginLeft(image_6) + offsetX);
+                    }
+                    if (H[0] + offsetY > 0 && H[0] + offsetY < H1) {
+                        H[0] += offsetY;
+                    }
+                }
+            } else if (face_id == "face-4") {
+                if (resizeDirection == 1) {
+                    if (W[1] - offsetX > 0 && W[1] - offsetX < W2) {
+                        W[1] -= offsetX;
+                        setImageMarginLeft(image_4, getImageMarginLeft(image_4) - offsetX);
+                        setImageMarginTop(image_5, getImageMarginTop(image_5) - offsetX);
+                    }
+                    if (H[0] - offsetY > 0 && H[0] - offsetY < H1) {
+                        H[0] -= offsetY;
+                        translateY[0] = translateY[0] + offsetY;
+                        setImageMarginTop(image_1, getImageMarginTop(image_1) - offsetY);
+                        setImageMarginTop(image_2, getImageMarginTop(image_2) - offsetY);
+                        setImageMarginTop(image_3, getImageMarginTop(image_3) - offsetY);
+                        setImageMarginTop(image_4, getImageMarginTop(image_4) - offsetY);
+                    }
+                } else if (resizeDirection == 2) {
+                    if (W[1] + offsetX > 0 && W[1] + offsetX < W2) {
+                        W[1] += offsetX;
+                        translateZ[0] = translateZ[0] + offsetX;
+                        setImageMarginLeft(image_2, getImageMarginLeft(image_2) + offsetX);
+                        setImageMarginTop(image_6, getImageMarginTop(image_6) + offsetX);
+                    }
+                    if (H[0] - offsetY > 0 && H[0] - offsetY < H1) {
+                        H[0] -= offsetY;
+                        translateY[0] = translateY[0] + offsetY;
+                        setImageMarginTop(image_1, getImageMarginTop(image_1) - offsetY);
+                        setImageMarginTop(image_2, getImageMarginTop(image_2) - offsetY);
+                        setImageMarginTop(image_3, getImageMarginTop(image_3) - offsetY);
+                        setImageMarginTop(image_4, getImageMarginTop(image_4) - offsetY);
+                    }
+                } else if (resizeDirection == 3) {
+                    if (W[1] - offsetX > 0 && W[1] - offsetX < W2) {
+                        W[1] -= offsetX;
+                        setImageMarginLeft(image_4, getImageMarginLeft(image_4) - offsetX);
+                        setImageMarginTop(image_5, getImageMarginTop(image_5) - offsetX);
+                    }
+                    if (H[0] + offsetY > 0 && H[0] + offsetY < H1) {
+                        H[0] += offsetY;
+                    }
+                } else if (resizeDirection == 4) {
+                    if (W[1] + offsetX > 0 && W[1] + offsetX < W2) {
+                        W[1] += offsetX;
+                        translateZ[0] = translateZ[0] + offsetX;
+                        setImageMarginLeft(image_2, getImageMarginLeft(image_2) + offsetX);
+                        setImageMarginTop(image_6, getImageMarginTop(image_6) + offsetX);
+                    }
+                    if (H[0] + offsetY > 0 && H[0] + offsetY < H1) {
+                        H[0] += offsetY;
+                    }
+                }
+            } else if (face_id == "face-5") {
+                if (resizeDirection == 1) {
+                    if (W[0] - offsetX > 0 && W[0] - offsetX < W1) {
+                        W[0] -= offsetX;
+                        translateX[0] = translateX[0] + offsetX;
+                        setImageMarginLeft(image_5, getImageMarginLeft(image_5) - offsetX);
+                        setImageMarginLeft(image_1, getImageMarginLeft(image_1) - offsetX);
+                        setImageMarginLeft(image_6, getImageMarginLeft(image_6) - offsetX);
+                    }
+                    if (W[1] - offsetY > 0 && W[1] - offsetY < W2) {
+                        W[1] -= offsetY;
+                        setImageMarginTop(image_5, getImageMarginTop(image_5) - offsetY);
+                        setImageMarginLeft(image_4, getImageMarginLeft(image_4) - offsetY);
+                    }
+                } else if (resizeDirection == 2) {
+                    if (W[0] + offsetX > 0 && W[0] + offsetX < W1) {
+                        W[0] += offsetX;
+                        setImageMarginLeft(image_3, getImageMarginLeft(image_3) + offsetX);
+                    }
+                    if (W[1] - offsetY > 0 && W[1] - offsetY < W2) {
+                        W[1] -= offsetY;
+                        setImageMarginTop(image_5, getImageMarginTop(image_5) - offsetY);
+                        setImageMarginLeft(image_4, getImageMarginLeft(image_4) - offsetY);
+                    }
+                } else if (resizeDirection == 3) {
+                    if (W[0] - offsetX > 0 && W[0] - offsetX < W1) {
+                        W[0] -= offsetX;
+                        translateX[0] = translateX[0] + offsetX;
+                        setImageMarginLeft(image_5, getImageMarginLeft(image_5) - offsetX);
+                        setImageMarginLeft(image_1, getImageMarginLeft(image_1) - offsetX);
+                        setImageMarginLeft(image_6, getImageMarginLeft(image_6) - offsetX);
+                    }
+                    if (W[1] + offsetY > 0 && W[1] + offsetY < W2) {
+                        W[1] += offsetY;
+                        translateZ[0] = translateZ[0] + offsetY;
+                        setImageMarginLeft(image_2, getImageMarginLeft(image_2) + offsetY);
+                        setImageMarginTop(image_6, getImageMarginTop(image_6) + offsetY);
+                    }
+                } else if (resizeDirection == 4) {
+                    if (W[0] + offsetX > 0 && W[0] + offsetX < W1) {
+                        W[0] += offsetX;
+                        setImageMarginLeft(image_3, getImageMarginLeft(image_3) + offsetX);
+                    }
+                    if (W[1] + offsetY > 0 && W[1] + offsetY < W2) {
+                        W[1] += offsetY;
+                        translateZ[0] = translateZ[0] + offsetY;
+                        setImageMarginLeft(image_2, getImageMarginLeft(image_2) + offsetY);
+                        setImageMarginTop(image_6, getImageMarginTop(image_6) + offsetY);
+                    }
+                }
+            } else if (face_id == "face-6") {
+                if (resizeDirection == 1) {
+                    if (W[0] - offsetX > 0 && W[0] - offsetX < W1) {
+                        W[0] -= offsetX;
+                        translateX[0] = translateX[0] + offsetX;
+                        setImageMarginLeft(image_6, getImageMarginLeft(image_6) - offsetX);
+                        setImageMarginLeft(image_1, getImageMarginLeft(image_1) - offsetX);
+                        setImageMarginLeft(image_5, getImageMarginLeft(image_5) - offsetX);
+                    }
+                    if (W[1] - offsetY > 0 && W[1] - offsetY < W2) {
+                        W[1] -= offsetY;
+                        translateZ[0] = translateZ[0] - offsetY;
+                        setImageMarginTop(image_6, getImageMarginTop(image_6) - offsetY);
+                        setImageMarginLeft(image_2, getImageMarginLeft(image_2) - offsetY);
+                    }
+                } else if (resizeDirection == 2) {
+                    if (W[0] + offsetX > 0 && W[0] + offsetX < W1) {
+                        W[0] += offsetX;
+                        setImageMarginLeft(image_3, getImageMarginLeft(image_3) + offsetX);
+                    }
+                    if (W[1] - offsetY > 0 && W[1] - offsetY < W2) {
+                        W[1] -= offsetY;
+                        translateZ[0] = translateZ[0] - offsetY;
+                        setImageMarginTop(image_6, getImageMarginTop(image_6) - offsetY);
+                        setImageMarginLeft(image_2, getImageMarginLeft(image_2) - offsetY);
+                    }
+                } else if (resizeDirection == 3) {
+                    if (W[0] - offsetX > 0 && W[0] - offsetX < W1) {
+                        W[0] -= offsetX;
+                        translateX[0] = translateX[0] + offsetX;
+                        setImageMarginLeft(image_6, getImageMarginLeft(image_6) - offsetX);
+                        setImageMarginLeft(image_1, getImageMarginLeft(image_1) - offsetX);
+                        setImageMarginLeft(image_5, getImageMarginLeft(image_5) - offsetX);
+                    }
+                    if (W[1] + offsetY > 0 && W[1] + offsetY < W2) {
+                        W[1] += offsetY;
+                        setImageMarginLeft(image_4, getImageMarginLeft(image_4) + offsetY);
+                        setImageMarginTop(image_5, getImageMarginTop(image_5) + offsetY);
+                    }
+                } else if (resizeDirection == 4) {
+                    if (W[0] + offsetX > 0 && W[0] + offsetX < W1) {
+                        W[0] += offsetX;
+                        setImageMarginLeft(image_3, getImageMarginLeft(image_3) + offsetX);
+                    }
+                    if (W[1] + offsetY > 0 && W[1] + offsetY < W2) {
+                        W[1] += offsetY;
+                        setImageMarginLeft(image_4, getImageMarginLeft(image_4) + offsetY);
+                    }
+                }
+            }
+            setSize();
+        }
+
+
+        document.addEventListener('wheel', function(event) {
+            let offset = 1;
+            if (event.deltaY > 0) {
+                offset = -1;
+            }
+            changeSizeCube(offset);
+        });
+
+        function checkMaxResizeLimitation(offset, max) {
+
+        }
+
+        function changeSizeCube(val) {
+            let offset = 1;
+            if (val < 0) {
+                offset = -1;
+            }
+            if (face_id === "face-1") {
+                if (face_offset[0] - offset >= 0 && W[1] + offset >= 0 && W[1] + offset <= W2) {
+                    W[1] += offset;
+                    translateZ[0] += offset;
+                    face_offset[0] -= offset;
+                    setImageMarginLeft(image_2, getImageMarginLeft(image_2) + offset);
+                    setImageMarginTop(image_6, getImageMarginTop(image_6) + offset);
+                }
+
+            } else if (face_id === "face-2") {
+                if (face_offset[1] - offset >= 0 && W[0] + offset >= 0 && W[0] + offset <= W1) {
+                    W[0] += offset;
+                    face_offset[1] -= offset;
+                    setImageMarginLeft(image_3, getImageMarginLeft(image_3) + offset);
+                }
+            } else if (face_id === "face-3") {
+                if (face_offset[2] - offset >= 0 && W[1] + offset >= 0 && W[1] + offset <= W2) {
+                    W[1] += offset;
+                    face_offset[2] -= offset;
+                    setImageMarginLeft(image_4, getImageMarginLeft(image_4) + offset);
+                    setImageMarginTop(image_5, getImageMarginTop(image_5) + offset);
+                }
+            } else if (face_id === "face-4") {
+                if (face_offset[3] - offset >= 0 && W[0] + offset >= 0 && W[0] + offset <= W1) {
+                    W[0] += offset;
+                    translateX[0] -= offset;
+                    face_offset[3] -= offset;
+                    setImageMarginLeft(image_1, getImageMarginLeft(image_1) + offset);
+                    setImageMarginLeft(image_5, getImageMarginLeft(image_5) + offset);
+                    setImageMarginLeft(image_6, getImageMarginLeft(image_6) + offset);
+                }
+
+            } else if (face_id === "face-5") {
+                if (face_offset[4] - offset >= 0 && H[0] + offset >= 0 && H[0] + offset <= H1) {
+                    H[0] += offset;
+                    translateY[0] -= offset;
+                    face_offset[4] -= offset;
+                    setImageMarginTop(image_1, getImageMarginTop(image_1) + offset);
+                    setImageMarginTop(image_2, getImageMarginTop(image_2) + offset);
+                    setImageMarginTop(image_3, getImageMarginTop(image_3) + offset);
+                    setImageMarginTop(image_4, getImageMarginTop(image_3) + offset);
+                }
+
+            } else if (face_id === "face-6") {
+                if (face_offset[5] - offset >= 0 && H[1] + offset >= 0 && H[1] + offset <= H1) {
+                    H[0] += offset;
+                    face_offset[5] -= offset;
+                }
+            }
+            setSize();
+            loadImage();
+        }
+
+        function loadImage() {
+            if (face_id == "face-1") {
+                image_1.src = "catfaces/front_" + String((parseInt(Math.abs(face_offset[0]) / space) + 1)) + ".png";
+            } else if (face_id == "face-2") {
+                image_2.src = "catfaces/right_" + String((parseInt(Math.abs(face_offset[1]) / space) + 1)) + ".png";
+            } else if (face_id == "face-3") {
+                image_3.src = "catfaces/front_" + String(front_image_num - (parseInt(Math.abs(face_offset[2]) / space))) + ".png";
+            } else if (face_id == "face-4") {
+                image_4.src = "catfaces/right_" + String(right_image_num - (parseInt(Math.abs(face_offset[3]) / space))) + ".png";
+            } else if (face_id == "face-5") {
+                image_5.src = "catfaces/top_" + String((parseInt(Math.abs(face_offset[4]) / space) + 1)) + ".png";
+            } else if (face_id == "face-6") {
+                image_6.src = "catfaces/top_" + String(top_image_num - (parseInt(Math.abs(face_offset[5]) / space))) + ".png";
+            }
+        }
+
+        function rotateClick() {
+            isDragging = true;
+            isResizable = false;
+            document.getElementById("rotate-option").src = "catfaces/rotate-highlight.png ";
+            document.getElementById("resize-option").src = "catfaces/resize.png ";
+        }
+
+        function resizeClick() {
+            isDragging = false;
+            isResizable = true;
+            document.getElementById("rotate-option").src = "catfaces/rotate.png";
+            document.getElementById("resize-option").src = "catfaces/resize-highlight.png";
+        }
+
+        function highlightFaceBorder() {
+            face_1.style.borderColor = "transparent";
+            face_2.style.borderColor = "transparent";
+            face_3.style.borderColor = "transparent";
+            face_4.style.borderColor = "transparent";
+            face_5.style.borderColor = "transparent";
+            face_6.style.borderColor = "transparent";
+            // face_1.style.borderWidth = "1px 1px 1px 1px";
+            // face_2.style.borderWidth = "1px 1px 1px 1px";
+            // face_3.style.borderWidth = "1px 1px 1px 1px";
+            // face_4.style.borderWidth = "1px 1px 1px 1px";
+            // face_5.style.borderWidth = "1px 1px 1px 1px";
+            // face_6.style.borderWidth = "1px 1px 1px 1px";
+            if (face_id == "face-1") {
+                face_1.style.borderColor = "#ff0000 ";
+                //face_1.style.borderWidth = "2px 2px 2px 2px";
+            } else if (face_id == "face-2") {
+                face_2.style.borderColor = "#ff0000 ";
+            } else if (face_id == "face-3") {
+                face_3.style.borderColor = "#ff0000 ";
+            } else if (face_id == "face-4") {
+                face_4.style.borderColor = "#ff0000 ";
+            } else if (face_id == "face-5") {
+                face_5.style.borderColor = "#ff0000 ";
+            } else if (face_id == "face-6") {
+                face_6.style.borderColor = "#ff0000 ";
+            }
+        }
+
+        function selectFace(ele) {
+            if (!isResizable) {
+                return;
+            }
+            face_id = ele.id;
+            highlightFaceBorder();
+        }
+    </script>
+</body>
+
+</html>
